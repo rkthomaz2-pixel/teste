@@ -1,0 +1,202 @@
+
+<h2 class="sr-only">Análise de potencial de ganho no Airbnb em Búzios — casa para até 8 pessoas</h2>
+
+<style>
+.tab-btn { background: none; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 6px 14px; font-size: 13px; cursor: pointer; color: var(--color-text-secondary); transition: all .15s; }
+.tab-btn.active { background: var(--color-background-secondary); color: var(--color-text-primary); border-color: var(--color-border-secondary); font-weight: 500; }
+.metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 14px 16px; }
+.metric-label { font-size: 12px; color: var(--color-text-secondary); margin: 0 0 4px; }
+.metric-value { font-size: 22px; font-weight: 500; margin: 0; }
+.scenario-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px; cursor: pointer; transition: border-color .15s; }
+.scenario-card.active { border: 2px solid #185FA5; }
+.badge { font-size: 11px; padding: 3px 8px; border-radius: var(--border-radius-md); display: inline-block; margin-bottom: 8px; }
+.section-label { font-size: 11px; color: var(--color-text-secondary); letter-spacing: .06em; text-transform: uppercase; margin: 0 0 10px; font-weight: 500; }
+.cost-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 14px; }
+.cost-row:last-child { border-bottom: none; }
+.tip-box { background: var(--color-background-info); border-left: 3px solid #185FA5; padding: 10px 14px; border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; font-size: 13px; color: var(--color-text-secondary); margin-top: 6px; }
+</style>
+
+<div style="padding: 1rem 0;">
+
+<p class="section-label">Cenários de receita anual</p>
+<div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem;" id="scenario-grid">
+
+  <div class="scenario-card" id="card-0" onclick="selectScenario(0)">
+    <span class="badge" style="background:#EAF3DE; color:#3B6D11;">Conservador</span>
+    <p style="font-size: 20px; font-weight: 500; margin: 0 0 4px; color: var(--color-text-primary);">R$ 181k</p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 6px;">receita bruta/ano</p>
+    <p style="font-size: 13px; color: var(--color-text-primary); margin: 0 0 2px;">Líquido: <strong>R$ 106k</strong></p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Diária R$1.100 · Ocup. 45%</p>
+  </div>
+
+  <div class="scenario-card active" id="card-1" onclick="selectScenario(1)">
+    <span class="badge" style="background:#E6F1FB; color:#185FA5;">Moderado</span>
+    <p style="font-size: 20px; font-weight: 500; margin: 0 0 4px; color: var(--color-text-primary);">R$ 342k</p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 6px;">receita bruta/ano</p>
+    <p style="font-size: 13px; color: var(--color-text-primary); margin: 0 0 2px;">Líquido: <strong>R$ 235k</strong></p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Diária R$1.700 · Ocup. 55%</p>
+  </div>
+
+  <div class="scenario-card" id="card-2" onclick="selectScenario(2)">
+    <span class="badge" style="background:#FAEEDA; color:#854F0B;">Premium</span>
+    <p style="font-size: 20px; font-weight: 500; margin: 0 0 4px; color: var(--color-text-primary);">R$ 593k</p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0 0 6px;">receita bruta/ano</p>
+    <p style="font-size: 13px; color: var(--color-text-primary); margin: 0 0 2px;">Líquido: <strong>R$ 438k</strong></p>
+    <p style="font-size: 12px; color: var(--color-text-secondary); margin: 0;">Diária R$2.500 · Ocup. 65%</p>
+  </div>
+</div>
+
+<p class="section-label">Sazonalidade mensal — receita bruta estimada (cenário moderado)</p>
+<div style="position: relative; width: 100%; height: 220px; margin-bottom: 1.5rem;">
+  <canvas id="seasonChart" role="img" aria-label="Gráfico de receita mensal estimada para casa em Búzios no cenário moderado. Picos em janeiro, fevereiro, julho e dezembro.">Receita mais alta em jan/fev/jul/dez (alta temporada), mais baixa em abr/mai/jun.</canvas>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5rem;">
+  <div>
+    <p class="section-label">Custos operacionais estimados/ano</p>
+    <div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 12px 16px;" id="cost-table">
+    </div>
+  </div>
+  <div>
+    <p class="section-label">Indicadores-chave</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;" id="kpi-grid"></div>
+  </div>
+</div>
+
+<p class="section-label">Calculadora personalizada</p>
+<div style="background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 16px;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 12px;">
+    <div>
+      <label style="font-size: 13px; color: var(--color-text-secondary);">Diária média (R$)</label>
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+        <input type="range" id="sl-diaria" min="500" max="4000" step="100" value="1700" style="flex:1;">
+        <span style="font-size: 14px; font-weight: 500; min-width: 54px;" id="sl-diaria-out">R$1.700</span>
+      </div>
+    </div>
+    <div>
+      <label style="font-size: 13px; color: var(--color-text-secondary);">Taxa de ocupação anual</label>
+      <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px;">
+        <input type="range" id="sl-ocup" min="20" max="80" step="5" value="55" style="flex:1;">
+        <span style="font-size: 14px; font-weight: 500; min-width: 38px;" id="sl-ocup-out">55%</span>
+      </div>
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+    <div class="metric">
+      <p class="metric-label">Receita bruta/ano</p>
+      <p class="metric-value" id="calc-bruto" style="color: #185FA5;">R$ 342k</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Custos estimados/ano</p>
+      <p class="metric-value" id="calc-custo" style="color: #D85A30;">R$ 107k</p>
+    </div>
+    <div class="metric">
+      <p class="metric-label">Receita líquida/ano</p>
+      <p class="metric-value" id="calc-liquido" style="color: #1D9E75;">R$ 235k</p>
+    </div>
+  </div>
+</div>
+
+<div class="tip-box" style="margin-top: 1rem;">
+  <i class="ti ti-info-circle" aria-hidden="true" style="font-size:16px; vertical-align:-2px; margin-right:6px;"></i>
+  Geribá e João Fernandes são as localizações mais valorizadas. Casas com piscina, vista para o mar e mais de 4 quartos comandam diárias entre R$1.500 e R$3.500+. Alta temporada (dez–fev e jul) pode representar até 50% da receita anual.
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const scenarios = [
+  { diaria: 1100, ocup: 0.45, label: 'Conservador', bruto: 180675, liquido: 105854, costs: { airbnb: 27101, limpeza: 12300, fixo: 30000, manut: 5420 } },
+  { diaria: 1700, ocup: 0.55, label: 'Moderado', bruto: 341825, liquido: 235297, costs: { airbnb: 51274, limpeza: 15000, fixo: 30000, manut: 10255 } },
+  { diaria: 2500, ocup: 0.65, label: 'Premium', bruto: 592625, liquido: 438253, costs: { airbnb: 88894, limpeza: 17700, fixo: 30000, manut: 17779 } }
+];
+
+let current = 1;
+
+const months = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const occupancy = [0.90, 0.85, 0.60, 0.35, 0.30, 0.35, 0.90, 0.40, 0.35, 0.50, 0.55, 0.85];
+const avgDiaria = [3000, 2800, 1500, 900, 800, 900, 2500, 1000, 900, 1200, 1400, 2800];
+const days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+const monthlyRevenue = months.map((m, i) => Math.round(days[i] * occupancy[i] * avgDiaria[i] / 1000));
+
+const ctx = document.getElementById('seasonChart').getContext('2d');
+const seasonChart = new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [{
+      label: 'Receita (R$ mil)',
+      data: monthlyRevenue,
+      backgroundColor: monthlyRevenue.map(v => v > 40 ? '#185FA5' : v > 20 ? '#85B7EB' : '#B5D4F4'),
+      borderRadius: 4,
+      borderSkipped: false
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` R$ ${ctx.raw}k` } } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 12 } } },
+      y: { grid: { color: 'rgba(128,128,128,.1)' }, ticks: { font: { size: 11 }, callback: v => 'R$' + v + 'k' } }
+    }
+  }
+});
+
+function fmt(n) { return 'R$ ' + Math.round(n / 1000) + 'k'; }
+function fmtFull(n) { return 'R$ ' + n.toLocaleString('pt-BR'); }
+
+function renderCosts(s) {
+  const c = s.costs;
+  const total = c.airbnb + c.limpeza + c.fixo + c.manut;
+  document.getElementById('cost-table').innerHTML = `
+    <div class="cost-row"><span style="color:var(--color-text-secondary)">Taxa Airbnb (~15%)</span><span style="color:#D85A30; font-weight:500">${fmt(c.airbnb)}</span></div>
+    <div class="cost-row"><span style="color:var(--color-text-secondary)">Limpeza / lavanderia</span><span style="color:#D85A30; font-weight:500">${fmt(c.limpeza)}</span></div>
+    <div class="cost-row"><span style="color:var(--color-text-secondary)">Fixos (IPTU, luz, internet)</span><span style="color:#D85A30; font-weight:500">${fmt(c.fixo)}</span></div>
+    <div class="cost-row"><span style="color:var(--color-text-secondary)">Manutenção (~3%)</span><span style="color:#D85A30; font-weight:500">${fmt(c.manut)}</span></div>
+    <div class="cost-row" style="font-weight:500"><span>Total custos</span><span style="color:#D85A30">${fmt(total)}</span></div>
+  `;
+}
+
+function renderKPIs(s) {
+  const margem = Math.round(s.liquido / s.bruto * 100);
+  const diasOcup = Math.round(365 * s.ocup);
+  const rendMes = Math.round(s.liquido / 12 / 1000);
+  document.getElementById('kpi-grid').innerHTML = `
+    <div class="metric"><p class="metric-label">Margem líquida</p><p class="metric-value" style="font-size:20px; color:#1D9E75;">${margem}%</p></div>
+    <div class="metric"><p class="metric-label">Dias ocupados/ano</p><p class="metric-value" style="font-size:20px;">${diasOcup}</p></div>
+    <div class="metric"><p class="metric-label">Renda líq./mês (média)</p><p class="metric-value" style="font-size:18px; color:#1D9E75;">R$ ${rendMes}k</p></div>
+    <div class="metric"><p class="metric-label">Diária média</p><p class="metric-value" style="font-size:20px;">R$ ${s.diaria.toLocaleString('pt-BR')}</p></div>
+  `;
+}
+
+function selectScenario(i) {
+  current = i;
+  document.querySelectorAll('.scenario-card').forEach((c, j) => {
+    c.classList.toggle('active', i === j);
+  });
+  renderCosts(scenarios[i]);
+  renderKPIs(scenarios[i]);
+}
+
+selectScenario(1);
+
+function calcCustom() {
+  const d = parseInt(document.getElementById('sl-diaria').value);
+  const o = parseInt(document.getElementById('sl-ocup').value) / 100;
+  const bruto = Math.round(d * 365 * o);
+  const nStays = Math.round(365 * o / 4);
+  const custo = Math.round(bruto * 0.18 + nStays * 300 + 30000);
+  const liquido = bruto - custo;
+  document.getElementById('sl-diaria-out').textContent = 'R$' + d.toLocaleString('pt-BR');
+  document.getElementById('sl-ocup-out').textContent = Math.round(o * 100) + '%';
+  document.getElementById('calc-bruto').textContent = fmt(bruto);
+  document.getElementById('calc-custo').textContent = fmt(custo);
+  document.getElementById('calc-liquido').textContent = fmt(liquido);
+}
+
+document.getElementById('sl-diaria').addEventListener('input', calcCustom);
+document.getElementById('sl-ocup').addEventListener('input', calcCustom);
+calcCustom();
+</script>
